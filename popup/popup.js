@@ -16,11 +16,13 @@ var DEQUEUED = [];
 var SAVED = false;
 
 
-// TODO: define tab and window context, use new storage, fix context menus
+// TODO: fix tabs API, fix windows API, fix storage, fix context menu API
 function main() {
     // Test
-    allTabs.open("http://www.example.com");
-    allTabs[1].activate();
+    chrome.tabs.executeScript(null, { file: "/content_scripts/test.js" });
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {testURL: "http://www.example.com"});
+    });
     ENQUEUED.push(["New Tab","about:newtab"]);
     ENQUEUED.push(["Example Domain","http://www.example.com"]);
 
@@ -29,6 +31,7 @@ function main() {
     if (!ss.storage.windows) {
         ss.storage.windows = [];
     }
+    ss.on("overQuota", function() { console.log("OVER QUOTA BY ", ss.quotaUsage, "%!")});
 
     // Initialize events
     initEvents();
@@ -73,9 +76,6 @@ function main() {
     if (SAVING) {
         addOrRemoveForm(tabs);
     }
-
-    // TODO: fix storage
-    ss.on("overQuota", function() { console.log("OVER QUOTA BY ", ss.quotaUsage, "%!")});
 }
 main();
 
@@ -185,11 +185,12 @@ function initEvents() {
         	addOrRemoveForm(tabs);
         }
         else {
-        	var tabs = allWindows.activeWindow.tabs;
-        	for (let tab of tabs) {
-                tabs.push([tab.title,tab.url]);
-            }
-            saveTabs(tabs);
+            chrome.tabs.executeScript(null, { file: "/content_scripts/content.js" });
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {getWindowTabs: true}, function(response) {
+                    saveTabs(response.tabs);
+                });
+            });
         }
     });
 
