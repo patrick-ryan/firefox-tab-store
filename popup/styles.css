@@ -1,0 +1,51 @@
+/**
+ * styles.css
+ *
+ * Adapted from CSS MenuMaker
+ * (http://cssmenumaker.com/)
+ */
+
+#cssmenu ul,
+#cssmenu li,
+#cssmenu div {
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+#cssmenu ul {
+  list-style: none;
+}
+#cssmenu ul li div {
+  cursor: pointer;
+  min-width: 100px;
+  text-align: center;
+  border-bottom: 1px solid #5d5d5d;
+  border-top: 1px solid #5d5d5d;
+  border-right: 1px solid #5d5d5d;
+  border-left: 1px solid #5d5d5d;
+  line-height: 34px;
+  padding: 0 35px;
+}
+
+#cssmenu .has-sub > .menu-selected {
+  border-top: 2px solid green;
+  border-bottom: 1px solid #5d5d5d;
+}
+#cssmenu .has-sub > .menu-not-selected {
+  border-bottom: 2px solid green;
+}
+#cssmenu .has-sub ul {
+  display: none;
+  position: absolute;
+  top: 37px;
+  min-width: 100%;
+}
+#cssmenu .has-sub ul li div:hover {
+  background-color: #00CC99;
+}
+#cssmenu .has-sub ul li div {
+  background-color: #D8D8D8;
+  border-top: none;
+  line-height: 120%;
+  padding: 9px 5px;
+}

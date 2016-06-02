@@ -1,0 +1,141 @@
+/**
+ * panel.css
+ */
+
+/* flexbox */
+.flexbox-row {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-flow: row nowrap;
+}
+
+/* no selecting */
+div {
+    -webkit-touch-callout: none;  /* iOS Safari */
+    -webkit-user-select: none;    /* Chrome/Safari/Opera */
+    -khtml-user-select: none;     /* Konqueror */
+    -moz-user-select: none;       /* Firefox */
+    -ms-user-select: none;        /* IE/Edge */
+    user-select: none;            /* non-prefixed version, currently
+                                  not supported by any browser */
+}
+
+/* heading */
+#heading ul.flexbox-row {
+    justify-content: space-between;
+}
+#heading li.flexbox-row {
+    justify-content: flex-start;
+}
+#heading li.flexbox-row > div:first-of-type {
+    border-right: none;
+}
+#heading .env-not-selected:hover {
+    opacity: 1;
+    background-color: #FFFFFF;
+}
+#heading .env-not-selected {
+    border-bottom: 2px solid blue;
+    opacity: 0.5;
+    background-color: #D3D3D3;
+}
+#heading .env-selected {
+    border-top: 2px solid blue;
+}
+.warning {
+    color: red;
+    font-style: italic;
+}
+
+/* stores */
+#tablist {
+    list-style: none;
+}
+#tablist > li, #winlist > div {
+    cursor: pointer;
+    margin: 5px;
+}
+.tab-item,.win {
+    justify-content: flex-start;
+
+    background-color: #AFEEEE;
+}
+.tab-link,.win-label {
+    flex-grow: 1;
+
+    padding: 5px 10px;
+}
+.tab-link > div,.win-label {
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+.tab-link > div:last-of-type {
+    font-size: 12px;
+    padding-top: 5px;
+    color: rgba(0, 0, 0, 0.5);
+}
+.win-item {
+    list-style: none;
+    padding-left: 0;
+    border-bottom: 1px solid;
+}
+.win-item > li {
+    border-top: 1px dotted;
+}
+.win-item > li > div {
+    padding: 0 40px;
+}
+.selected {
+    background-color: #99CCCC;
+}
+.tab-item:hover,.win:hover {
+    background-color: #00CC99;
+}
+
+/* window buttons */
+.circle {
+    border: 1px solid;
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.remove-tab {
+    text-align: center;
+    margin-right: 5px;
+}
+.toggle-list {
+    flex-shrink: 0;
+
+    text-align: center;
+    margin-left: 5px;
+}
+.remove-win {
+    flex-shrink: 0;
+
+    text-align: center;
+    margin-right: 5px;
+}
+.open-win {
+    flex-shrink: 0;
+
+    border: 1px solid;
+    padding: 4px;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 5px;
+}
+.toggle-list:hover,.open-win:hover {
+    background-color: #4682B4;
+    border-color: #000000;
+    color: #FFFFFF;
+}
+.remove-tab:hover,.remove-win:hover {
+    background-color: #FF4D4D;
+}

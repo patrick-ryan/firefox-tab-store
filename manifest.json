@@ -1,0 +1,31 @@
+{
+
+  "manifest_version": 2,
+  "name": "Tab Store",
+  "version": "0.3.0",
+ 
+  "description": "An environment for tab and window storage.",
+  "icons": {
+    "16": "icons/windowicon16.png",
+    "32": "icons/windowicon32.png",
+    "64": "icons/windowicon64.png"
+  },
+
+  "applications": {
+    "gecko": {
+      "id": "jid1-z6c6AA8V87k27w@jetpack",
+      "strict_min_version": "45.0"
+    }
+  },
+
+  "browser_action": {
+    "default_icon": {
+      "16": "icons/windowicon16.png",
+      "32": "icons/windowicon32.png",
+      "64": "icons/windowicon64.png"
+    },
+    "default_title": "Tab Store",
+    "default_popup": "popup/popup.html"
+  }
+
+}
