@@ -173,11 +173,6 @@ function initEvents() {
         openOrActivateTabs(getSelectedTabs(), false, true);
     });
 
-    // TODO: fix active window tabs
-    // if activeWindow is deprecated at some point, instead use 
-    // getMostRecentBrowserWindow().gBrowser.tabs; which uses a 
-    // NodeList of <tab.tabbrowser-tab> instances
-    // tabs.push([tab.label,getBrowserForTab(tab).contentDocument.location.href]);
     var saveWin = document.getElementById("savewin");
     saveWin.addEventListener("click", function(event) {
         if (document.getElementById("form")) {
@@ -185,12 +180,8 @@ function initEvents() {
         	addOrRemoveForm(tabs);
         }
         else {
-            chrome.tabs.executeScript(null, { file: "/content_scripts/content.js" });
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {getWindowTabs: true}, function(response) {
-                    saveTabs(response.tabs);
-                });
-            });
+            // shift removes the IDs
+            saveTabs(getActiveWindowTabs().map(function(x) { return x.shift(); }));
         }
     });
 
@@ -274,6 +265,17 @@ function saveTabs(tabs) {
         }
     }
 }
+
+function getActiveWindowTabs() {
+    var activeWindowTabs;
+    chrome.tabs.executeScript(null, { file: "/content_scripts/content.js" });
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {getWindowTabs: true}, function(response) {
+            activeWindowTabs = response.tabs;
+        });
+    });
+    return activeWindowTabs;
+} 
 
 // TODO: fix storage
 // TODO: verify accuracy of quota usage percentage
@@ -429,29 +431,30 @@ function selectWindow(item) {
     });
 }
 
-function openOrActivateTabs(tabs, activate, newWindow) {
-    if (tabs.length > 0) {
+function openOrActivateTabs(tabsList, activate, newWindow) {
+    if (tabsList.length > 0) {
         if (newWindow) {
-            openInWindow(tabs);
+            openInWindow(tabsList);
             return;
         }
-        // TODO: only activate tabs on the active window
-        for (let tab of tabs) {
-            var url = tab[1];
-            var done = false;
-            if (activate == true) {
-                for (let currentTab of allTabs) {
-                    if (currentTab.url == url) {
-                        currentTab.activate();
-                        done = true;
-                        break;
-                    }
-                }
-            }
-            if (done == false) {
-                allTabs.open(url);
-            }
-        }
+
+        var activeWindowTabs = getActiveWindowTabs();
+        chrome.tabs.executeScript(null, { file: "/content_scripts/content.js" });
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            // slow, but readable; filters use comparisons between URLs
+            tabsList = tabsList.map(function(x) { return x[2]; });
+            var tabsToActivate = activeWindowTabs.filter(function(x) { return tabsList.indexOf(x[2]) != -1 });
+
+            // just activate last tab in list
+            chrome.tabs.sendMessage(tabs[0].id, {activateTab: true, tabID: tabsToActivate[tabsToActivate.length - 1][0]});
+
+            // even slower, but whatever
+            tabsToActivate = tabsToActivate.map(function(x) { return x[2]; });
+            var tabsToOpen = tabsList.filter(function(x) { return tabsToActivate.indexOf(x) < 0 });
+
+            // open the other tabs
+            chrome.tabs.sendMessage(tabs[0].id, {openTabs: true, tabURLs: tabsToOpen});
+        });
     }
 }
 
