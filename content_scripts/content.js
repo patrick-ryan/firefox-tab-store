@@ -13,6 +13,10 @@ function main(request, sender, sendResponse) {
 		sendResponse({tabs: tabsList});
 	}
 
+	else if (request.createTabs && request.newWindow) {
+		chrome.windows.create({ url: request.tabURLs });
+	}
+
 	else if (request.createTabs) {
 		for (let tabURL of request.tabURLs) {
 			chrome.tabs.create({ url: tabURL });

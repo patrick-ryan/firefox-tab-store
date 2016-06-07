@@ -16,7 +16,7 @@ var DEQUEUED = [];
 var SAVED = false;
 
 
-// TODO: fix tabs API, fix windows API, fix storage, fix context menu API
+// TODO: fix storage, fix context menu API
 function main() {
     // Test
     chrome.tabs.executeScript(null, { file: "/content_scripts/test.js" });
@@ -37,7 +37,6 @@ function main() {
     initEvents();
 
     // Activate context menus
-    // TODO: fix context menu API
     // TODO: add hotkeys (sdk)
 	// TODO: support other node names (e.g. <A> links)
     function activateContextMenu(window) {
@@ -215,6 +214,7 @@ function switchEnv() {
     showEnv();
 }
 
+// TODO: fix storage
 function showEnv() {
     handleWarnings();
     if (ENV == "tab") {
@@ -343,6 +343,20 @@ function addTab(tab) {
         item.parentNode.removeChild(item);
     });
 
+    var selectLink = function(link) {
+        link.addEventListener("click", function(event) {
+            if (link.classList.contains("selected")) {
+                if (ENV == "win") {
+                    link.parentNode.firstChild.classList.remove("selected");
+                }
+                link.classList.remove("selected");
+            }
+            else {
+                link.classList.add("selected");
+            }
+        });
+    }
+
     if (item) {
         selectLink(item);
     }
@@ -396,83 +410,33 @@ function addWindow(win) {
     return item;
 }
 
-function selectLink(link) {
-    link.addEventListener("click", function(event) {
-        if (link.classList.contains("selected")) {
-            if (ENV == "win") {
-                link.parentNode.firstChild.classList.remove("selected");
-            }
-            link.classList.remove("selected");
-        }
-        else {
-            link.classList.add("selected");
-        }
-    });
-}
-
-function selectWindow(item) {
-    var win = item.firstChild;
-    win.addEventListener("click", function(event) {
-        var children = win.parentNode.childNodes;
-        if (win.classList.contains("selected")) {
-            win.classList.remove("selected");
-
-            for (var i=1; i<children.length; i++) {
-                children[i].classList.remove("selected");
-            }
-        }
-        else {
-            win.classList.add("selected");
-
-            for (var i=1; i<children.length; i++) {
-                children[i].classList.add("selected");
-            }
-        }
-    });
-}
-
 function openOrActivateTabs(tabsList, activate, newWindow) {
     if (tabsList.length > 0) {
-        if (newWindow) {
-            openInWindow(tabsList);
-            return;
-        }
-
-        var activeWindowTabs = getActiveWindowTabs();
         chrome.tabs.executeScript(null, { file: "/content_scripts/content.js" });
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            // slow, but readable; filters use comparisons between URLs
+            // reduce tabs to URLs
             tabsList = tabsList.map(function(x) { return x[2]; });
-            var tabsToActivate = activeWindowTabs.filter(function(x) { return tabsList.indexOf(x[2]) != -1 });
 
-            // just activate last tab in list
-            chrome.tabs.sendMessage(tabs[0].id, {activateTab: true, tabID: tabsToActivate[tabsToActivate.length - 1][0]});
+            if (newWindow) {
+                // open all tabs in new window
+                chrome.tabs.sendMessage(tabs[0].id, {openTabs: true, newWindow: true, tabURLs: tabsList});
+            }
+            else {
+                // slow, but readable; comparison between URLs to find intersection
+                var tabsToActivate = getActiveWindowTabs().filter(function(x) { return tabsList.indexOf(x[2]) != -1 });
 
-            // even slower, but whatever
-            tabsToActivate = tabsToActivate.map(function(x) { return x[2]; });
-            var tabsToOpen = tabsList.filter(function(x) { return tabsToActivate.indexOf(x) < 0 });
+                // just activate last tab in list
+                chrome.tabs.sendMessage(tabs[0].id, {activateTab: true, tabID: tabsToActivate[tabsToActivate.length - 1][0]});
 
-            // open the other tabs
-            chrome.tabs.sendMessage(tabs[0].id, {openTabs: true, tabURLs: tabsToOpen});
+                // even slower, but whatever; comparison between URLs to find difference
+                tabsToActivate = tabsToActivate.map(function(x) { return x[2]; });
+                tabsList = tabsList.filter(function(x) { return tabsToActivate.indexOf(x) < 0 });
+
+                // open the other tabs
+                chrome.tabs.sendMessage(tabs[0].id, {openTabs: true, tabURLs: tabsList});
+            }
         });
     }
-}
-
-// TODO: fix tabs API
-// openTab ensures that tabs are opened in the new window,
-// rather than in the active window
-function openInWindow(tabs) {
-    allWindows.open({
-        url: tabs[0][1],
-        onOpen: function(win) {
-            var domWin = viewFor(win);
-            win.tabs[0].on("ready", function() {
-                for (var i=1; i<tabs.length; i++) {
-                    openTab(domWin, tabs[i][1]);
-                }
-            });
-        }
-    });
 }
 
 function getSelectedTabs() {
@@ -575,6 +539,27 @@ function createMenuList(item) {
 }
 
 function prepareList(item) {
+    var selectWindow = function(item) {
+        var win = item.firstChild;
+        win.addEventListener("click", function(event) {
+            var children = win.parentNode.childNodes;
+            if (win.classList.contains("selected")) {
+                win.classList.remove("selected");
+
+                for (var i=1; i<children.length; i++) {
+                    children[i].classList.remove("selected");
+                }
+            }
+            else {
+                win.classList.add("selected");
+
+                for (var i=1; i<children.length; i++) {
+                    children[i].classList.add("selected");
+                }
+            }
+        });
+    }
+
     if (item) {
         createList(item);
         createMenuList(item);
